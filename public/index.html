@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudioEngine Pro & FX Engine - Ultimate Creator Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Fira+Code:wght@500;700&family=Montserrat:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&family=Rozha+One&family=Tiro+Devanagari+Hindi:ital@0;1&family=Outfit:wght@400;600;800&family=Great+Vibes&family=Noto+Sans+Gujarati&family=Noto+Serif+Gujarati&family=Noto+Sans+Devanagari&display=swap" rel="stylesheet">
+  <!-- ffmpeg.wasm (load on demand) -->
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"></script>
+  <style>
+    body { background-color: #070a11; color: #e2e8f0; font-family: 'Outfit', 'Noto Sans Gujarati', 'Noto Sans Devanagari', sans-serif; overflow: hidden; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .timeline-track { background-size: 20px 100%; background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px); }
+  </style>
+</head>
+<body class="h-screen flex flex-col select-none">
+
+  <!-- Navigation Header -->
+  <header class="h-14 border-b border-gray-800 bg-gray-900/90 px-6 flex justify-between items-center z-50 backdrop-blur shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-400 flex items-center justify-center font-black text-black text-sm shadow-lg shadow-purple-500/20">
+        FX
+      </div>
+      <div>
+        <h1 class="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 leading-tight">
+          StudioEngine Pro FX
+        </h1>
+        <p class="text-[10px] text-gray-400 font-mono">POST IMAGE & REEL CREATOR v8.6</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button onclick="Engine.togglePlay()" id="playBtnHeader" class="bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center gap-1">
+        ▶️ Play
+      </button>
+
+      <!-- DEDICATED IMAGE DOWNLOAD BUTTON -->
+      <button onclick="Engine.downloadImage('png')" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black font-extrabold text-xs px-3.5 py-1.5 rounded-lg shadow-lg shadow-emerald-500/20 transition active:scale-95 flex items-center gap-1">
+        📸 Download Post Image (PNG)
+      </button>
+
+      <!-- VIDEO EXPORT BUTTON -->
+      <button onclick="Engine.exportVideo('mp4')" id="exportWebmBtn" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-lg shadow-lg shadow-purple-900/30 transition active:scale-95">
+        🎥 Export Reel Video
+      </button>
+
+      <button onclick="ExportEngine.exportJSON()" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs text-amber-300 rounded-lg transition">
+        📄 JSON
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Work Area -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Controls Editor Sidebar -->
+    <aside class="w-96 glass-panel border-r border-gray-800 flex flex-col z-20 shrink-0">
+      
+      <!-- Control Tabs Navigation -->
+      <div class="flex border-b border-gray-800 bg-gray-950/60">
+        <button onclick="UI.switchTab('content')" id="tabBtn-content" class="flex-1 py-2.5 text-xs font-semibold text-purple-400 border-b-2 border-purple-400 transition">Content</button>
+        <button onclick="UI.switchTab('anim')" id="tabBtn-anim" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">Mode & Motion</button>
+        <button onclick="UI.switchTab('presets')" id="tabBtn-presets" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">Presets</button>
+        <button onclick="UI.switchTab('fx')" id="tabBtn-fx" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">FX & Media</button>
+      </div>
+
+      <!-- Tab Contents Area -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+
+        <!-- TAB 1: CONTENT & TYPOGRAPHY -->
+        <div id="tab-content" class="space-y-4">
+
+          <!-- Static vs Motion Mode Toggle -->
+          <div class="p-3 bg-purple-950/50 border border-purple-500/40 rounded-lg flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-purple-300 block">Disable Animation (Static Post)</span>
+              <span class="text-[10px] text-gray-400 block">Stops background stars & motion for clean image output</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="disableAnimation" class="sr-only peer" onchange="Engine.updateConfigFromUI()">
+              <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <!-- Text Content Creator Input -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400">Post Text Creator</label>
+              <button onclick="autoHighlightKeywords()" class="text-[10px] text-amber-400 hover:underline">✨ Auto Highlight (*)</button>
+            </div>
+            <textarea id="inputText" rows="4" placeholder="Type or paste your post content here..." class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-sans" oninput="Engine.updateConfigFromUI()">❤️ "vakt sabka aata hai,
+bas khud par bharosa
+aur mehnat jari rakho."</textarea>
+          </div>
+
+          <!-- SMART TEXT-TO-IMAGE SEARCH BUTTON -->
+          <div class="p-3 bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-purple-500/40 rounded-lg">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-bold text-pink-300 flex items-center gap-1">🔮 Smart Context Image Finder</span>
+              <span id="extractedKeywordBadge" class="text-[10px] font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800">Auto Match</span>
+            </div>
+            <p class="text-[10px] text-gray-300 mb-2.5">Finds relevant background images automatically based on the words you typed above!</p>
+            <button onclick="fetchImagesBasedOnText()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs py-2 px-3 rounded-lg shadow-md transition flex items-center justify-center gap-1.5">
+              🔍 Find Images for My Text
+            </button>
+          </div>
+
+          <!-- Quick Emoji / Symbol Picker -->
+          <div>
+            <label class="block text-[10px] text-gray-400 mb-1">Add Symbol / Emoji:</label>
+            <div class="flex gap-1.5 flex-wrap">
+              <button onclick="insertSymbol('❤️')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">❤️</button>
+              <button onclick="insertSymbol('💖')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">💖</button>
+              <button onclick="insertSymbol('✨')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">✨</button>
+              <button onclick="insertSymbol('🌟')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">🌟</button>
+              <button onclick="insertSymbol('🔥')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">🔥</button>
+              <button onclick="insertSymbol('👑')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">👑</button>
+              <button onclick="insertSymbol('🕊️')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">🕊️</button>
+              <button onclick="insertSymbol('🌿')" class="px-2 py-1 bg-gray-950 hover:bg-gray-800 border border-gray-800 rounded text-xs">🌿</button>
+            </div>
+          </div>
+
+          <!-- Signature Watermark -->
+          <div class="space-y-3">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-1">Signature Watermark</label>
+            <input type="text" id="watermarkInput" value="Dil Ni Vaato ❤️" placeholder="e.g. — your name —" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-amber-300 focus:outline-none focus:border-purple-500" oninput="Engine.updateConfigFromUI()">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-gray-400 mb-1">Watermark Font</label>
+                <select id="watermarkFontFamily" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-gray-200" onchange="Engine.updateConfigFromUI()">
+                  <option value="Great Vibes" selected>Great Vibes</option>
+                  <option value="Playfair Display">Playfair Display</option>
+                  <option value="Cinzel">Cinzel</option>
+                  <option value="Montserrat">Montserrat</option>
+                  <option value="Outfit">Outfit</option>
+                  <option value="Rozha One">Rozha One</option>
+                  <option value="Tiro Devanagari Hindi">Tiro Devanagari Hindi</option>
+                    <option value="Noto Sans Gujarati">Noto Sans Gujarati</option>
+                    <option value="Noto Serif Gujarati">Noto Serif Gujarati</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-gray-400 mb-1">Watermark Size (<span id="watermarkFontSizeVal">42</span>px)</label>
+                <input type="range" id="watermarkFontSize" min="18" max="72" value="42" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div>
+                <label class="block text-[10px] text-gray-400 mb-1">Watermark X (%)</label>
+                <input type="range" id="watermarkPosX" min="0" max="100" value="50" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+              </div>
+              <div>
+                <label class="block text-[10px] text-gray-400 mb-1">Watermark Y (%)</label>
+                <input type="range" id="watermarkPosY" min="0" max="100" value="70" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+              </div>
+            </div>
+            <div class="mt-2">
+              <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+                <input type="checkbox" id="enableWatermarkDrag" class="rounded bg-gray-950 border-gray-800 text-purple-500 focus:ring-0" onchange="Engine.updateConfigFromUI()">
+                <span>Enable drag watermark on canvas</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Aspect Ratio -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-1.5">Format Aspect Ratio</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="ratio11" onclick="Engine.setRatio('1:1')" class="py-1.5 px-3 text-xs font-semibold rounded-lg bg-purple-600 text-white border border-purple-400 transition">1:1 Square Post</button>
+              <button id="ratio916" onclick="Engine.setRatio('9:16')" class="py-1.5 px-3 text-xs font-semibold rounded-lg bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700 transition">9:16 Story / Reel</button>
+            </div>
+          </div>
+
+          <!-- Text Width Adjustment Slider -->
+          <div class="border-t border-gray-800 pt-3">
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400">Text Container Width</label>
+              <span id="textWidthVal" class="text-xs text-amber-400 font-mono">850px</span>
+            </div>
+            <input type="range" id="textWidth" min="300" max="1020" step="10" value="850" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+          </div>
+
+          <!-- Typography Controls -->
+          <div class="grid grid-cols-2 gap-3 border-t border-gray-800 pt-3">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Font Family</label>
+              <select id="fontFamily" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200" onchange="Engine.updateConfigFromUI()">
+                <option value="Tiro Devanagari Hindi" selected>Tiro Devanagari (Hindi Post)</option>
+                <option value="Rozha One">Rozha One (Extra Heavy)</option>
+                <option value="Montserrat">Montserrat (Bold Modern)</option>
+                <option value="Outfit">Outfit (Clean Sans)</option>
+                <option value="Cinzel">Cinzel (Cinematic Royal)</option>
+                <option value="Playfair Display">Playfair Display (Serif Luxury)</option>
+                <option value="Great Vibes">Great Vibes (Script Signature)</option>
+                <option value="Noto Sans Gujarati">Noto Sans Gujarati (Gujarati)</option>
+                <option value="Noto Serif Gujarati">Noto Serif Gujarati (Gujarati Serif)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Font Size (<span id="fontSizeVal">52</span>px)</label>
+              <input type="range" id="fontSize" min="24" max="120" value="52" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Letter Spacing (<span id="letterSpacingVal">2</span>px)</label>
+              <input type="range" id="letterSpacing" min="-5" max="30" value="2" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Line Height (<span id="lineHeightVal">1.3</span>)</label>
+              <input type="range" id="lineHeight" min="0.8" max="2.5" step="0.1" value="1.3" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+            </div>
+          </div>
+
+          <!-- Colors -->
+          <div class="border-t border-gray-800 pt-3 space-y-3">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400">Color Palette & Highlights</label>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <span class="text-[10px] text-gray-400 block mb-1">Text Base</span>
+                <input type="color" id="textColor" value="#ffffff" class="w-full h-8 bg-transparent rounded cursor-pointer" onchange="Engine.updateConfigFromUI()">
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-400 block mb-1">Highlight (*)</span>
+                <input type="color" id="highlightColor" value="#f59e0b" class="w-full h-8 bg-transparent rounded cursor-pointer" onchange="Engine.updateConfigFromUI()">
+              </div>
+              <div>
+                <span class="text-[10px] text-gray-400 block mb-1">Gradient End</span>
+                <input type="color" id="gradEnd" value="#ec4899" class="w-full h-8 bg-transparent rounded cursor-pointer" onchange="Engine.updateConfigFromUI()">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 2: MOTION & ANIMATION ARCHITECTURE -->
+        <div id="tab-anim" class="space-y-4 hidden">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-1">Target breakdown</label>
+            <select id="animateBy" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-semibold" onchange="Engine.updateConfigFromUI()">
+              <option value="character">Character By Character (Letter)</option>
+              <option value="word">Word By Word</option>
+              <option value="line">Line By Line</option>
+              <option value="sentence">Entire Sentence</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Entrance Style</label>
+              <select id="entranceStyle" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200" onchange="Engine.updateConfigFromUI()">
+                <option value="fadeIn">Smooth Fade In</option>
+                <option value="slideUp">Slide Up</option>
+                <option value="zoomIn">Pop Zoom In</option>
+                <option value="bounceIn">Bounce Elastic</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Continuous Loop FX</label>
+              <select id="loopStyle" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200" onchange="Engine.updateConfigFromUI()">
+                <option value="none">None</option>
+                <option value="pulse">Breathing Pulse</option>
+                <option value="floating">Floating Wave</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-800 pt-3 space-y-3">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400">Video Duration</label>
+                <span id="durationVal" class="text-xs text-amber-400 font-mono">5.0s</span>
+              </div>
+              <input type="range" id="videoDuration" min="2" max="20" step="0.5" value="5" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-[11px] text-gray-400">Start At</label>
+                  <span id="animStartVal" class="text-[10px] text-amber-400 font-mono">0.0s</span>
+                </div>
+                <input type="range" id="animStart" min="0" max="20" step="0.25" value="0" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-[11px] text-gray-400">End At</label>
+                  <span id="animEndVal" class="text-[10px] text-amber-400 font-mono">5.0s</span>
+                </div>
+                <input type="range" id="animEnd" min="0.5" max="20" step="0.25" value="5" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Export Video Quality</label>
+              <select id="videoQuality" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200" onchange="Engine.updateConfigFromUI()">
+                <option value="low">Low Quality</option>
+                <option value="medium" selected>Medium Quality</option>
+                <option value="high">High Quality</option>
+                <option value="ultra">Ultra Quality</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: PRESETS LIBRARY -->
+        <div id="tab-presets" class="space-y-3 hidden">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Presets</span>
+          </div>
+          <div id="presetGrid" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <!-- TAB 4: SHADERS & MEDIA -->
+        <div id="tab-fx" class="space-y-4 hidden">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400">Background Image Library</label>
+              <button onclick="handleFetchMedia()" class="text-[10px] text-purple-400 hover:underline">Shuffle Photos</button>
+            </div>
+            
+            <div id="thumbGrid" class="grid grid-cols-3 gap-2 mb-3 max-h-52 overflow-y-auto p-1 border border-gray-800/60 rounded-lg bg-gray-950/40"></div>
+
+            <label class="block text-[11px] text-gray-400 mb-1">Custom Image Upload:</label>
+            <input type="file" id="imageUpload" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-950 file:text-purple-300 hover:file:bg-purple-900 cursor-pointer"/>
+          </div>
+
+          <!-- Fine-Tuning & Masks -->
+          <div class="border-t border-gray-800 pt-3 space-y-3">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400">Fine-Tuning Controls</label>
+            <div>
+              <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Dark Vignette Mask</span>
+                <span id="overlayOpacityVal">65%</span>
+              </div>
+              <input type="range" id="overlayOpacity" min="0" max="100" value="65" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Vertical Position (Y)</span>
+                <span id="textYVal" class="font-mono text-amber-400">300</span>
+              </div>
+              <input type="range" id="textY" min="50" max="1500" value="300" class="w-full accent-purple-500" oninput="Engine.updateConfigFromUI()">
+            </div>
+          </div>
+
+          <!-- Shader FX Toggles -->
+          <div class="border-t border-gray-800 pt-3 space-y-2">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-1">Overlay FX</label>
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+              <input type="checkbox" id="enableGlow" class="rounded bg-gray-950 border-gray-800 text-purple-500 focus:ring-0" onchange="Engine.updateConfigFromUI()" checked>
+              <span>Text Soft Glow / Shadow</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+              <input type="checkbox" id="enableParticles" class="rounded bg-gray-950 border-gray-800 text-purple-500 focus:ring-0" onchange="Engine.updateConfigFromUI()" checked>
+              <span>Background Stars / Particles</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Center Live Canvas Workspace -->
+    <main class="flex-1 bg-gray-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div class="text-xs text-gray-400 mb-2 flex items-center justify-between w-full max-w-md">
+        <span class="flex items-center gap-2">🖼️ Live Post Canvas Preview</span>
+        <span class="text-[10px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded">Drag Canvas to Adjust Text Y Position</span>
+      </div>
+
+      <div id="canvasContainer" class="relative shadow-2xl rounded-lg overflow-hidden border border-gray-800 max-h-[70vh] aspect-square transition-all duration-300 cursor-crosshair">
+        <canvas id="stageCanvas" width="1080" height="1080" class="w-full h-full object-contain"></canvas>
+      </div>
+
+      <div class="mt-4 flex gap-3">
+        <button onclick="Engine.downloadImage('png')" class="bg-emerald-600 hover:bg-emerald-500 text-black font-extrabold text-xs px-5 py-2 rounded-lg shadow-lg shadow-emerald-600/20 transition active:scale-95">
+          📸 Download Image (PNG)
+        </button>
+        <button onclick="Engine.downloadImage('jpg')" class="bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs px-5 py-2 rounded-lg border border-gray-700 transition">
+          🖼️ Download Image (JPG)
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Bottom Timeline -->
+  <footer class="h-24 glass-panel border-t border-gray-800 flex flex-col z-30 shrink-0">
+    <div class="h-9 border-b border-gray-800 px-6 flex justify-between items-center bg-gray-950/80">
+      <div class="flex items-center gap-3">
+        <button onclick="Engine.togglePlay()" id="playBtnTimeline" class="w-6 h-6 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-xs transition">
+          ▶
+        </button>
+        <span id="timecodeDisplay" class="font-mono text-xs text-amber-300 ml-2">00:00:00</span>
+      </div>
+
+      <div class="flex items-center gap-4 text-xs text-gray-400 font-mono">
+        <span>Mode: <strong id="modeDisplay" class="text-purple-400">Motion Animated Mode</strong></span>
+        <span>Ratio: <strong id="ratioDisplay">1:1 Square</strong></span>
+      </div>
+    </div>
+
+    <!-- Timeline Tracks Scrub Area -->
+    <div class="flex-1 p-2.5 overflow-x-auto relative timeline-track flex flex-col justify-center space-y-1.5">
+      <input type="range" id="timelineScrubber" min="0" max="100" value="0" class="w-full accent-purple-500 cursor-pointer z-10" oninput="Engine.scrubTimeline(this.value)">
+    </div>
+  </footer>
+
+  <!-- JavaScript Engine Logic -->
+  <script>
+    const Easing = {
+      linear: t => t,
+      easeOutCubic: t => (--t) * t * t + 1,
+      easeOutBounce: t => {
+        const n1 = 7.5625, d1 = 2.75;
+        if (t < 1 / d1) return n1 * t * t;
+        else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+        else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+        else return n1 * (t -= 2.625 / d1) * t + 0.984375;
+      }
+    };
+
+    const Engine = {
+      canvas: null,
+      ctx: null,
+      isPlaying: true,
+      currentTime: 0,
+      duration: 5.0,
+      lastTimestamp: 0,
+      currentRatio: '1:1',
+      currentBgImage: new Image(),
+      svgTextCache: { key: null, img: null },
+
+      config: {
+        text: "",
+        watermark: "",
+        watermarkFontFamily: "Great Vibes",
+        watermarkFontSize: 42,
+        watermarkX: 50,
+        watermarkY: 70,
+        fontFamily: "Tiro Devanagari Hindi",
+        fontSize: 52,
+        letterSpacing: 2,
+        lineHeight: 1.3,
+        textWidth: 850,
+        duration: 5.0,
+        animStart: 0.0,
+        animEnd: 5.0,
+        videoQuality: 'medium',
+        disableAnimation: false,
+        textColor: "#ffffff",
+        highlightColor: "#f59e0b",
+        gradEnd: "#ec4899",
+        animateBy: "character",
+        entranceStyle: "fadeIn",
+        loopStyle: "none",
+        animSpeed: 2.0,
+        staggerDelay: 0.04,
+        overlayOpacity: 0.65,
+        textY: 300,
+        enableGlow: true,
+        enableParticles: true
+      },
+
+      particles: [],
+
+      init() {
+        this.canvas = document.getElementById('stageCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.initParticles();
+        this.initCanvasMouse();
+        this.initWatermarkDrag();
+        this.updateConfigFromUI();
+        requestAnimationFrame((ts) => this.loop(ts));
+      },
+
+      initParticles() {
+        this.particles = [];
+        for (let i = 0; i < 40; i++) {
+          this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            radius: Math.random() * 2 + 1,
+            speedY: - (Math.random() * 1.0 + 0.2),
+            alpha: Math.random()
+          });
+        }
+      },
+
+      initCanvasMouse() {
+        let isDragging = false;
+        const updatePos = (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const scaleY = this.canvas.height / rect.height;
+          const clickY = (e.clientY - rect.top) * scaleY;
+          const maxH = this.canvas.height * 0.95;
+          document.getElementById('textY').value = Math.min(maxH, Math.max(50, Math.round(clickY)));
+          this.updateConfigFromUI();
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => { isDragging = true; updatePos(e); });
+        this.canvas.addEventListener('mousemove', (e) => { if (isDragging) updatePos(e); });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+      },
+
+      initWatermarkDrag() {
+        let isWDragging = false;
+        const canvas = () => this.canvas;
+        const rectForEvent = (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+          const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+          return { x, y };
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => {
+          if (!document.getElementById('enableWatermarkDrag') || !document.getElementById('enableWatermarkDrag').checked) return;
+          const pos = rectForEvent(e);
+          const wm = this.config.watermark || '';
+          if (!wm) return;
+          // compute watermark position and bbox
+          const wmX = (this.config.watermarkX / 100) * this.canvas.width;
+          const wmY = (this.config.watermarkY / 100) * this.canvas.height;
+          this.ctx.save();
+          this.ctx.font = `italic 600 ${this.config.watermarkFontSize}px "${this.config.watermarkFontFamily}", serif`;
+          const wmWidth = this.ctx.measureText(wm).width;
+          const wmHeight = this.config.watermarkFontSize;
+          this.ctx.restore();
+
+          if (pos.x >= wmX - wmWidth/2 - 10 && pos.x <= wmX + wmWidth/2 + 10 && pos.y >= wmY - wmHeight && pos.y <= wmY + wmHeight) {
+            isWDragging = true;
+          }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isWDragging) return;
+          const pos = rectForEvent(e);
+          this.config.watermarkX = Math.max(0, Math.min(100, (pos.x / this.canvas.width) * 100));
+          this.config.watermarkY = Math.max(0, Math.min(100, (pos.y / this.canvas.height) * 100));
+          if (document.getElementById('watermarkPosX')) document.getElementById('watermarkPosX').value = this.config.watermarkX;
+          if (document.getElementById('watermarkPosY')) document.getElementById('watermarkPosY').value = this.config.watermarkY;
+          this.updateConfigFromUI();
+        });
+
+        window.addEventListener('mouseup', () => { isWDragging = false; });
+      },
+
+      setRatio(ratio) {
+        this.currentRatio = ratio;
+        const container = document.getElementById('canvasContainer');
+        const btn11 = document.getElementById('ratio11');
+        const btn916 = document.getElementById('ratio916');
+
+        if (ratio === '1:1') {
+          this.canvas.width = 1080;
+          this.canvas.height = 1080;
+          container.style.aspectRatio = '1 / 1';
+          btn11.className = "py-1.5 px-3 text-xs font-semibold rounded-lg bg-purple-600 text-white border border-purple-400 transition";
+          btn916.className = "py-1.5 px-3 text-xs font-semibold rounded-lg bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700 transition";
+          document.getElementById('ratioDisplay').textContent = "1:1 Square";
+        } else {
+          this.canvas.width = 1080;
+          this.canvas.height = 1920;
+          container.style.aspectRatio = '9 / 16';
+          btn916.className = "py-1.5 px-3 text-xs font-semibold rounded-lg bg-purple-600 text-white border border-purple-400 transition";
+          btn11.className = "py-1.5 px-3 text-xs font-semibold rounded-lg bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700 transition";
+          document.getElementById('ratioDisplay').textContent = "9:16 Story";
+        }
+        this.initParticles();
+      },
+
+      updateConfigFromUI() {
+        this.config.text = document.getElementById('inputText').value;
+        this.config.watermark = document.getElementById('watermarkInput').value;
+        this.config.watermarkFontFamily = document.getElementById('watermarkFontFamily').value;
+        this.config.watermarkFontSize = parseInt(document.getElementById('watermarkFontSize').value);
+        this.config.watermarkX = parseFloat(document.getElementById('watermarkPosX').value);
+        this.config.watermarkY = parseFloat(document.getElementById('watermarkPosY').value);
+        this.config.fontFamily = document.getElementById('fontFamily').value;
+        this.config.fontSize = parseInt(document.getElementById('fontSize').value);
+        this.config.letterSpacing = parseInt(document.getElementById('letterSpacing').value);
+        this.config.lineHeight = parseFloat(document.getElementById('lineHeight').value);
+        this.config.textWidth = parseInt(document.getElementById('textWidth').value);
+        this.config.duration = parseFloat(document.getElementById('videoDuration').value || 5);
+        this.config.animStart = parseFloat(document.getElementById('animStart').value || 0);
+        this.config.animEnd = parseFloat(document.getElementById('animEnd').value || this.config.duration);
+        this.config.videoQuality = document.getElementById('videoQuality').value || 'medium';
+        this.config.disableAnimation = document.getElementById('disableAnimation').checked;
+        this.config.textColor = document.getElementById('textColor').value;
+        this.config.highlightColor = document.getElementById('highlightColor').value;
+        this.config.gradEnd = document.getElementById('gradEnd').value;
+        this.config.animateBy = document.getElementById('animateBy').value;
+        this.config.entranceStyle = document.getElementById('entranceStyle').value;
+        this.config.loopStyle = document.getElementById('loopStyle').value;
+        this.config.overlayOpacity = parseInt(document.getElementById('overlayOpacity').value) / 100;
+        this.config.textY = parseInt(document.getElementById('textY').value);
+        this.config.enableGlow = document.getElementById('enableGlow').checked;
+        this.config.enableParticles = document.getElementById('enableParticles').checked;
+
+        this.duration = this.config.duration;
+        if (this.config.animEnd < this.config.animStart) {
+          this.config.animEnd = this.config.duration;
+          document.getElementById('animEnd').value = this.config.animEnd;
+        }
+        if (this.config.animEnd > this.duration) {
+          this.config.animEnd = this.duration;
+          document.getElementById('animEnd').value = this.config.animEnd;
+        }
+        if (this.config.animStart > this.duration) {
+          this.config.animStart = this.duration;
+          document.getElementById('animStart').value = this.config.animStart;
+        }
+
+        document.getElementById('fontSizeVal').textContent = this.config.fontSize;
+        document.getElementById('letterSpacingVal').textContent = this.config.letterSpacing;
+        document.getElementById('lineHeightVal').textContent = this.config.lineHeight;
+        document.getElementById('textWidthVal').textContent = `${this.config.textWidth}px`;
+        document.getElementById('watermarkFontSizeVal').textContent = this.config.watermarkFontSize;
+        if (document.getElementById('durationVal')) document.getElementById('durationVal').textContent = `${this.config.duration.toFixed(1)}s`;
+        if (document.getElementById('animStartVal')) document.getElementById('animStartVal').textContent = `${this.config.animStart.toFixed(1)}s`;
+        if (document.getElementById('animEndVal')) document.getElementById('animEndVal').textContent = `${this.config.animEnd.toFixed(1)}s`;
+        // Keep watermark position UI in sync
+        if (document.getElementById('watermarkPosX')) document.getElementById('watermarkPosX').value = this.config.watermarkX;
+        if (document.getElementById('watermarkPosY')) document.getElementById('watermarkPosY').value = this.config.watermarkY;
+        document.getElementById('textYVal').textContent = this.config.textY;
+        document.getElementById('overlayOpacityVal').textContent = `${Math.round(this.config.overlayOpacity * 100)}%`;
+        
+        const modeTxt = document.getElementById('modeDisplay');
+        if (this.config.disableAnimation) {
+          modeTxt.textContent = "Static Image Mode";
+          modeTxt.className = "text-emerald-400 font-bold";
+        } else {
+          modeTxt.textContent = "Motion Animated Mode";
+          modeTxt.className = "text-purple-400 font-bold";
+        }
+
+        // Auto-detect script and switch to suitable fonts for Gujarati/Devanagari
+        try {
+          const script = detectScript(this.config.text + (this.config.watermark || ''));
+          if (script === 'gujarati') {
+            if (!this.config.fontFamily.includes('Gujarati')) {
+              this.config.fontFamily = 'Noto Sans Gujarati';
+              const sel = document.getElementById('fontFamily'); if (sel) sel.value = this.config.fontFamily;
+            }
+            if (!this.config.watermarkFontFamily.includes('Gujarati')) {
+              this.config.watermarkFontFamily = 'Noto Serif Gujarati';
+              const wsel = document.getElementById('watermarkFontFamily'); if (wsel) wsel.value = this.config.watermarkFontFamily;
+            }
+          } else if (script === 'devanagari') {
+            if (!this.config.fontFamily.toLowerCase().includes('devanagari')) {
+              this.config.fontFamily = 'Tiro Devanagari Hindi';
+              const sel = document.getElementById('fontFamily'); if (sel) sel.value = this.config.fontFamily;
+            }
+            if (!this.config.watermarkFontFamily.toLowerCase().includes('devanagari')) {
+              this.config.watermarkFontFamily = 'Tiro Devanagari Hindi';
+              const wsel = document.getElementById('watermarkFontFamily'); if (wsel) wsel.value = this.config.watermarkFontFamily;
+            }
+          }
+        } catch (e) { /* ignore */ }
+        // Ensure newly-selected fonts are loaded before re-rendering canvas
+        try {
+          const f1 = this.config.fontFamily;
+          const f2 = this.config.watermarkFontFamily;
+          if (document.fonts && document.fonts.load) {
+            Promise.all([
+              document.fonts.load(`1em "${f1}"`).catch(() => {}),
+              document.fonts.load(`1em "${f2}"`).catch(() => {})
+            ]).then(() => {
+              if (this.ctx) this.renderFrame(this.currentTime);
+            });
+          } else {
+            if (this.ctx) this.renderFrame(this.currentTime);
+          }
+        } catch (e) { /* ignore */ }
+      },
+
+      togglePlay() {
+        this.isPlaying = !this.isPlaying;
+        const icon = this.isPlaying ? '⏸' : '▶';
+        document.getElementById('playBtnTimeline').textContent = icon;
+        document.getElementById('playBtnHeader').textContent = this.isPlaying ? '⏸️ Pause' : '▶️ Play';
+      },
+
+      scrubTimeline(val) {
+        this.currentTime = (val / 100) * this.duration;
+      },
+
+      loop(timestamp) {
+        if (!this.lastTimestamp) this.lastTimestamp = timestamp;
+        const delta = (timestamp - this.lastTimestamp) / 1000;
+        this.lastTimestamp = timestamp;
+
+        if (this.isPlaying && !this.config.disableAnimation) {
+          this.currentTime += delta;
+          if (this.currentTime > this.duration) {
+            this.currentTime = 0;
+          }
+        }
+
+        this.renderFrame(this.currentTime);
+
+        const progressPercent = (this.currentTime / this.duration) * 100;
+        document.getElementById('timelineScrubber').value = Math.min(100, Math.max(0, progressPercent));
+
+        const totalSeconds = Math.max(0, Math.floor(this.currentTime));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        document.getElementById('timecodeDisplay').textContent =
+          `00:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        requestAnimationFrame((ts) => this.loop(ts));
+      },
+
+      renderFrame(time) {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. Draw Background Image
+        if (this.currentBgImage.complete && this.currentBgImage.naturalWidth !== 0) {
+          const imgRatio = this.currentBgImage.naturalWidth / this.currentBgImage.naturalHeight;
+          const canvasRatio = w / h;
+          let renderW, renderH, offsetX, offsetY;
+
+          if (imgRatio > canvasRatio) {
+            renderH = h; renderW = h * imgRatio;
+            offsetX = (w - renderW) / 2; offsetY = 0;
+          } else {
+            renderW = w; renderH = w / imgRatio;
+            offsetX = 0; offsetY = (h - renderH) / 2;
+          }
+          ctx.drawImage(this.currentBgImage, offsetX, offsetY, renderW, renderH);
+        } else {
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        // 2. Dark Overlay Mask
+        const gradient = ctx.createLinearGradient(0, 0, 0, h);
+        const op = this.config.overlayOpacity;
+        gradient.addColorStop(0, `rgba(0,0,0,${op * 0.85})`);
+        gradient.addColorStop(0.5, `rgba(0,0,0,${op * 0.25})`);
+        gradient.addColorStop(1, `rgba(0,0,0,${op * 0.95})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        // 3. Background Stars / Particles
+        if (this.config.enableParticles) {
+          ctx.fillStyle = this.config.highlightColor;
+          this.particles.forEach(p => {
+            if (!this.config.disableAnimation && this.isPlaying) {
+              p.y += p.speedY;
+              if (p.y < 0) p.y = h;
+            }
+            ctx.globalAlpha = p.alpha * 0.5;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.globalAlpha = 1.0;
+        }
+
+        // 4. Render User Text Layout
+        if (this.config.text.trim()) {
+          this.drawTextLayout(w, h, time);
+        }
+      },
+
+      wrapTextLines(ctx, text, maxWidth) {
+        const paragraphs = text.split('\n');
+        const wrappedLines = [];
+
+        paragraphs.forEach(para => {
+          if (!para.trim()) {
+            wrappedLines.push("");
+            return;
+          }
+          const words = para.split(' ');
+          let currentLine = "";
+
+          words.forEach(word => {
+            const testLine = currentLine ? currentLine + " " + word : word;
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && currentLine !== "") {
+              wrappedLines.push(currentLine);
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
+          });
+          if (currentLine) wrappedLines.push(currentLine);
+        });
+
+        return wrappedLines;
+      },
+
+      drawTextLayout(w, h, time) {
+        const ctx = this.ctx;
+        const cfg = this.config;
+
+        ctx.font = `700 ${cfg.fontSize}px "${cfg.fontFamily}", sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+
+        const lines = this.wrapTextLines(ctx, cfg.text, cfg.textWidth);
+        const lineHeightPx = cfg.fontSize * (cfg.lineHeight + 0.2);
+        let currentY = Math.max(40, Math.min(cfg.textY, h - 220));
+        let globalIndex = 0;
+        const detected = detectScript(cfg.text + (cfg.watermark || ''));
+
+        if (detected === 'gujarati' || detected === 'devanagari') {
+          const centeredStartY = Math.max(60, currentY);
+          const safeInnerWidth = Math.max(180, w - 140);
+
+          ctx.save();
+          ctx.textBaseline = 'alphabetic';
+
+          lines.forEach((lineText, idx) => {
+            const y = centeredStartY + idx * lineHeightPx + cfg.fontSize * 0.8;
+            if (y > h - 120) return;
+
+            const parsedTokens = parseMarkdownHighlights(lineText);
+            const totalWidth = parsedTokens.reduce((sum, tok) => sum + ctx.measureText(tok.text).width + (cfg.letterSpacing || 0), 0);
+            const fitScale = totalWidth > safeInnerWidth ? safeInnerWidth / totalWidth : 1;
+            const drawFontSize = Math.max(22, Math.round(cfg.fontSize * fitScale));
+            ctx.font = `700 ${drawFontSize}px "${cfg.fontFamily}", sans-serif`;
+            ctx.textAlign = 'left';
+
+            let cursorX = w / 2 - (totalWidth * fitScale) / 2;
+            parsedTokens.forEach(tok => {
+              const tokenWidth = ctx.measureText(tok.text).width;
+              ctx.fillStyle = tok.isHighlight ? cfg.highlightColor : cfg.textColor;
+              ctx.fillText(tok.text, cursorX, y);
+              cursorX += tokenWidth + (cfg.letterSpacing || 0);
+            });
+          });
+          ctx.restore();
+          currentY += (lines.length + 0.5) * lineHeightPx;
+        } else {
+          lines.forEach((lineText) => {
+            if (!lineText.trim()) {
+              currentY += lineHeightPx * 0.6;
+              return;
+            }
+
+            const parsedTokens = parseMarkdownHighlights(lineText);
+            let totalLineWidth = 0;
+            
+            parsedTokens.forEach(tok => {
+              totalLineWidth += ctx.measureText(tok.text).width;
+            });
+
+            let currentX = (w - totalLineWidth) / 2;
+
+            parsedTokens.forEach(tok => {
+              let units = [];
+              if (cfg.animateBy === 'character') {
+                units = Array.from(tok.text);
+              } else if (cfg.animateBy === 'word') {
+                units = tok.text.split(' ');
+              } else {
+                units = [tok.text];
+              }
+
+              units.forEach((unitStr, uIdx) => {
+                const strToMeasure = unitStr + (cfg.animateBy === 'word' && uIdx < units.length - 1 ? ' ' : '');
+                const unitWidth = ctx.measureText(strToMeasure).width;
+                const posX = currentX;
+                currentX += unitWidth;
+
+                let opacity = 1.0;
+                let scale = 1.0;
+                let offsetY = 0;
+                let rotate = 0;
+
+                if (!cfg.disableAnimation) {
+                  const tokenStart = cfg.animStart + (globalIndex * cfg.staggerDelay);
+                  const tokenEnd = Math.max(tokenStart + 0.25, cfg.animEnd);
+                  const animWindow = Math.max(0.2, tokenEnd - tokenStart);
+
+                  if (time < tokenStart) {
+                    opacity = 0;
+                  } else if (time >= tokenEnd) {
+                    opacity = 1;
+                  } else {
+                    let progress = Math.max(0, Math.min(1, (time - tokenStart) / animWindow));
+                    let easedProgress = Easing.easeOutCubic(progress);
+                    opacity = easedProgress;
+                    if (cfg.entranceStyle === 'slideUp') offsetY = (1 - easedProgress) * 60;
+                    else if (cfg.entranceStyle === 'zoomIn') scale = 0.5 + (easedProgress * 0.5);
+                    else if (cfg.entranceStyle === 'bounceIn') offsetY = - (1 - easedProgress) * 100;
+                  }
+                }
+
+                ctx.save();
+                ctx.translate(posX + unitWidth / 2, currentY + offsetY);
+                ctx.scale(scale, scale);
+                ctx.rotate(rotate);
+                ctx.globalAlpha = opacity;
+
+                if (cfg.enableGlow) {
+                  ctx.shadowColor = tok.isHighlight ? cfg.highlightColor : 'rgba(0,0,0,0.85)';
+                  ctx.shadowBlur = 16;
+                  ctx.shadowOffsetY = 3;
+                }
+
+                ctx.fillStyle = tok.isHighlight ? cfg.highlightColor : cfg.textColor;
+                ctx.fillText(strToMeasure, -unitWidth / 2, 0);
+                ctx.restore();
+
+                globalIndex++;
+              });
+            });
+
+            currentY += lineHeightPx;
+          });
+        }
+
+        // Signature Watermark (positionable)
+        if (cfg.watermark.trim()) {
+          ctx.save();
+          ctx.font = `italic 600 ${cfg.watermarkFontSize}px "${cfg.watermarkFontFamily}", "Playfair Display", serif`;
+          ctx.fillStyle = cfg.highlightColor;
+          ctx.textAlign = 'center';
+          ctx.shadowColor = 'rgba(0,0,0,0.9)';
+          ctx.shadowBlur = 10;
+
+          const wmX = (cfg.watermarkX / 100) * w;
+          const wmY = (cfg.watermarkY / 100) * h;
+          ctx.fillText(cfg.watermark, wmX, wmY);
+
+          const wmWidth = ctx.measureText(cfg.watermark).width;
+          const lineStartLeft = (wmX) - (wmWidth / 2) - 70;
+          const lineEndLeft = (wmX) - (wmWidth / 2) - 15;
+
+          const lineStartRight = (wmX) + (wmWidth / 2) + 15;
+          const lineEndRight = (wmX) + (wmWidth / 2) + 70;
+
+          ctx.strokeStyle = cfg.highlightColor;
+          ctx.lineWidth = 1.5;
+
+          ctx.beginPath();
+          ctx.moveTo(lineStartLeft, wmY + 14);
+          ctx.lineTo(lineEndLeft, wmY + 14);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(lineStartRight, wmY + 14);
+          ctx.lineTo(lineEndRight, wmY + 14);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      },
+
+      downloadImage(format = 'png') {
+        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const link = document.createElement('a');
+        link.download = `quote-post-${Date.now()}.${format}`;
+        link.href = this.canvas.toDataURL(mimeType, 0.95);
+        link.click();
+      },
+
+      async exportVideo(format = 'mp4') {
+        const btn = document.getElementById('exportWebmBtn');
+        btn.textContent = "⏳ Rendering Reel...";
+        btn.disabled = true;
+
+        const quality = this.config.videoQuality || 'medium';
+        const stream = this.canvas.captureStream(60);
+        const preferredMime = format === 'mp4' && MediaRecorder.isTypeSupported('video/mp4')
+          ? 'video/mp4'
+          : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+            ? 'video/webm;codecs=vp9'
+            : MediaRecorder.isTypeSupported('video/webm')
+              ? 'video/webm'
+              : '';
+
+        const mediaRecorder = preferredMime ? new MediaRecorder(stream, { mimeType: preferredMime }) : new MediaRecorder(stream);
+        const chunks = [];
+
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.start();
+
+        this.currentTime = 0;
+        const exportDurationMs = Math.max(1000, this.duration * 1000);
+        await new Promise(resolve => setTimeout(resolve, exportDurationMs));
+        mediaRecorder.stop();
+
+        await new Promise(resolve => {
+          mediaRecorder.onstop = resolve;
+        });
+
+        const blob = new Blob(chunks, { type: preferredMime || 'video/webm' });
+
+        try {
+          const uploadName = blob.type.includes('mp4') ? 'recording.mp4' : 'recording.webm';
+          btn.textContent = "⏳ Uploading for MP4 conversion...";
+          const form = new FormData();
+          form.append('file', blob, uploadName);
+          form.append('quality', quality);
+
+          const resp = await fetch('/api/media/convert', { method: 'POST', body: form });
+          if (!resp.ok) throw new Error('Server conversion failed');
+
+          const mp4Blob = await resp.blob();
+          const url = URL.createObjectURL(mp4Blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Quote-Animated-Reel-${quality}.mp4`;
+          a.click();
+        } catch (err) {
+          console.warn('Server conversion failed, falling back to the browser-generated container:', err);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Quote-Animated-Reel-${quality}.${blob.type.includes('mp4') ? 'mp4' : 'webm'}`;
+          a.click();
+        }
+
+        btn.textContent = "🎥 Export Reel Video";
+        btn.disabled = false;
+      }
+    };
+
+    function parseMarkdownHighlights(text) {
+      const parts = text.split(/(\*[^*]+\*)/g);
+      const tokens = [];
+      parts.forEach(part => {
+        if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+          tokens.push({ text: part.slice(1, -1), isHighlight: true });
+        } else if (part.length > 0) {
+          tokens.push({ text: part, isHighlight: false });
+        }
+      });
+      return tokens;
+    }
+
+    function escapeXml(unsafe) {
+      return unsafe.replace(/[&<>"']/g, function (c) {
+        switch (c) {
+          case '&': return '&amp;';
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '"': return '&quot;';
+          case "'": return '&apos;';
+        }
+      });
+    }
+
+    function detectScript(text) {
+      if (!text) return null;
+      if (/[\u0A80-\u0AFF]/.test(text)) return 'gujarati';
+      if (/[\u0900-\u097F]/.test(text)) return 'devanagari';
+      return null;
+    }
+
+    function insertSymbol(symbol) {
+      const input = document.getElementById('inputText');
+      input.value = symbol + " " + input.value;
+      Engine.updateConfigFromUI();
+    }
+
+    function autoHighlightKeywords() {
+      const input = document.getElementById('inputText');
+      if (!input.value.trim()) return;
+      let text = input.value.replace(/\*/g, '');
+      const keywords = ['mehnat', 'kismat', 'zindagi', 'sapne', 'rasta', 'success', 'focus', 'love', 'nature', 'bharosa', 'vakt', 'time', 'life', 'gym', 'power', 'king'];
+      keywords.forEach(kw => {
+        const regex = new RegExp(`\\b(${kw})\\b`, 'gi');
+        text = text.replace(regex, '*$1*');
+      });
+      input.value = text;
+      Engine.updateConfigFromUI();
+    }
+
+    // SMART TEXT-TO-IMAGE SEARCH FUNCTION
+    function fetchImagesBasedOnText() {
+      const text = document.getElementById('inputText').value.toLowerCase();
+      const badge = document.getElementById('extractedKeywordBadge');
+      
+      // Keywords mapping for smart context matching
+      let seedQuery = "nature,dark";
+      let displayCategory = "General Aesthetic";
+
+      if (text.includes('vakt') || text.includes('time') || text.includes('kal')) {
+        seedQuery = "clock,vintage,dark,night";
+        displayCategory = "Time / Vintage";
+      } else if (text.includes('mehnat') || text.includes('gym') || text.includes('power') || text.includes('zor') || text.includes('bharosa')) {
+        seedQuery = "gym,workout,dark,fitness,strong";
+        displayCategory = "Power / Workout";
+      } else if (text.includes('love') || text.includes('pyar') || text.includes('dil') || text.includes('❤️') || text.includes('💖')) {
+        seedQuery = "romance,sunset,red,aesthetic"; 
+        displayCategory = "Love / Emotion";
+      } else if (text.includes('sapne') || text.includes('dream') || text.includes('aasmaan') || text.includes('stars')) {
+        seedQuery = "galaxy,night,stars,space,cosmos";
+        displayCategory = "Cosmos / Dreams";
+      } else if (text.includes('king') || text.includes('crown') || text.includes('👑') || text.includes('attitude')) {
+        seedQuery = "king,dark,lion,luxury,gold";
+        displayCategory = "Royal / Attitude";
+      } else {
+        // Fallback: extract random words or use generic deep aesthetics
+        seedQuery = "dark,moody,cinematic,wallpaper";
+        displayCategory = "Cinematic Moody";
+      }
+
+      badge.textContent = `Matched: ${displayCategory}`;
+
+      const timestamp = Date.now();
+      const dynamicAssets = [
+        `https://picsum.photos/seed/${seedQuery}1/1080/1080`,
+        `https://picsum.photos/seed/${seedQuery}2/1080/1080`,
+        `https://picsum.photos/seed/${seedQuery}3/1080/1080`,
+        `https://picsum.photos/seed/${seedQuery}4/1080/1080`,
+        `https://picsum.photos/seed/${seedQuery}5/1080/1080`,
+        `https://picsum.photos/seed/${seedQuery}6/1080/1080`
+      ];
+      populateThumbnails(dynamicAssets);
+    }
+
+    async function handleFetchMedia() {
+      const timestamp = Date.now();
+      const dynamicAssets = [
+        `https://picsum.photos/1080/1080?random=${timestamp}`,
+        `https://picsum.photos/1080/1080?random=${timestamp + 10}`,
+        `https://picsum.photos/1080/1080?random=${timestamp + 20}`,
+        `https://picsum.photos/1080/1080?random=${timestamp + 30}`,
+        `https://picsum.photos/1080/1080?random=${timestamp + 40}`,
+        `https://picsum.photos/1080/1080?random=${timestamp + 50}`
+      ];
+      populateThumbnails(dynamicAssets);
+    }
+
+    function populateThumbnails(assets) {
+      const grid = document.getElementById('thumbGrid');
+      grid.innerHTML = '';
+      assets.forEach((url) => {
+        const img = document.createElement('img');
+        img.src = url;
+        img.crossOrigin = "anonymous";
+        img.className = 'w-full h-16 object-cover rounded cursor-pointer border-2 border-transparent hover:border-purple-500 transition hover:scale-105 transform';
+        
+        img.onclick = () => {
+          Engine.currentBgImage = new Image();
+          Engine.currentBgImage.crossOrigin = "anonymous";
+          Engine.currentBgImage.src = url;
+        };
+        grid.appendChild(img);
+      });
+
+      if (assets.length > 0) {
+        Engine.currentBgImage = new Image();
+        Engine.currentBgImage.crossOrigin = "anonymous";
+        Engine.currentBgImage.src = assets[0];
+      }
+    }
+
+    document.getElementById('imageUpload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          Engine.currentBgImage = new Image();
+          Engine.currentBgImage.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    const PresetsLibrary = [
+      { name: "❤️ Devanagari Hindi Quote (Static)", fontFamily: "Tiro Devanagari Hindi", disableAnimation: true, textWidth: 850, highlightColor: "#f59e0b" },
+      { name: "✨ Gold Lux", animateBy: "character", entranceStyle: "bounceIn", disableAnimation: false, highlightColor: "#f59e0b" },
+      { name: "🎬 Modern Minimal", animateBy: "word", entranceStyle: "slideUp", disableAnimation: true, highlightColor: "#38bdf8" }
+    ];
+
+    const ExportEngine = {
+      exportJSON() {
+        const jsonStr = JSON.stringify(Engine.config, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `StudioEngine-Preset.json`;
+        a.click();
+      }
+    };
+
+    const UI = {
+      switchTab(tabKey) {
+        ['content', 'anim', 'presets', 'fx'].forEach(t => {
+          document.getElementById(`tab-${t}`).classList.add('hidden');
+          const btn = document.getElementById(`tabBtn-${t}`);
+          btn.classList.remove('text-purple-400', 'border-purple-400');
+          btn.classList.add('text-gray-400', 'border-transparent');
+        });
+
+        document.getElementById(`tab-${tabKey}`).classList.remove('hidden');
+        const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
+        activeBtn.classList.add('text-purple-400', 'border-purple-400');
+        activeBtn.classList.remove('text-gray-400', 'border-transparent');
+      },
+
+      populatePresets() {
+        const grid = document.getElementById('presetGrid');
+        grid.innerHTML = '';
+        PresetsLibrary.forEach(p => {
+          const card = document.createElement('div');
+          card.className = "p-2 bg-gray-950 border border-gray-800 hover:border-purple-500/50 rounded-lg cursor-pointer transition flex justify-between items-center";
+          card.innerHTML = `
+            <div>
+              <div class="text-xs font-bold text-gray-200">${p.name}</div>
+              <div class="text-[10px] text-gray-500 font-mono">${p.fontFamily || 'Montserrat'}</div>
+            </div>
+            <button class="text-[10px] bg-purple-500/10 border border-purple-500/30 text-purple-300 px-2 py-0.5 rounded">Apply</button>
+          `;
+          card.onclick = () => {
+            Object.assign(Engine.config, p);
+            document.getElementById('disableAnimation').checked = p.disableAnimation;
+            Engine.updateConfigFromUI();
+          };
+          grid.appendChild(card);
+        });
+      }
+    };
+
+    async function loadRequiredFonts(fonts) {
+      if (!document.fonts || !document.fonts.load) return Promise.resolve();
+      const loads = fonts.map(f => document.fonts.load(`1em "${f}"`).catch(() => {}));
+      return Promise.all(loads);
+    }
+
+    window.onload = async () => {
+      // Preload main fonts to ensure correct glyph shaping before first canvas draw
+      await loadRequiredFonts(["Outfit","Noto Sans Gujarati","Noto Serif Gujarati","Tiro Devanagari Hindi","Noto Sans Devanagari","Great Vibes"]);
+      UI.populatePresets();
+      Engine.init();
+      handleFetchMedia();
+    };
+  </script>
+</body>
+</html>

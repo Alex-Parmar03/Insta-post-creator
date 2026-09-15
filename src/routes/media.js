@@ -35,6 +35,7 @@ router.post('/convert', upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
     const quality = (req.body && req.body.quality) || 'medium';
+    const fileNameBase = (req.body && req.body.fileName) || 'quote-Animated-Reel';
     const qualityMap = {
       low: 28,
       medium: 23,
@@ -61,7 +62,8 @@ router.post('/convert', upload.single('file'), async (req, res) => {
     });
 
     res.setHeader('Content-Type', 'video/mp4');
-    res.download(outputPath, `Quote-Animated-Reel-${quality}.mp4`, (err) => {
+    const downloadName = `${fileNameBase}-${quality}.mp4`;
+    res.download(outputPath, downloadName, (err) => {
       // cleanup temp files
       try { fs.unlinkSync(inputPath); } catch (e) {}
       try { fs.unlinkSync(outputPath); } catch (e) {}

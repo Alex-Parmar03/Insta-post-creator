@@ -992,6 +992,21 @@
         }
       },
 
+      buildQuoteFileBase() {
+        const rawText = (this.config && this.config.text) ? this.config.text : (document.getElementById('inputText')?.value || '');
+        const words = rawText
+          .replace(/\*\*|__|_|`/g, ' ')
+          .replace(/[^\w\s-]/g, ' ')
+          .trim()
+          .split(/\s+/)
+          .map(word => word.replace(/^[^A-Za-z0-9\u0900-\u097F]+|[^A-Za-z0-9\u0900-\u097F]+$/g, ''))
+          .filter(Boolean)
+          .slice(0, 4);
+
+        const base = words.length ? words.join('-').toLowerCase() : 'quote';
+        return base.replace(/-+/g, '-').replace(/[^A-Za-z0-9\u0900-\u097F-]/g, '') || 'quote';
+      },
+
       downloadImage(format = 'png') {
         const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
         const link = document.createElement('a');
@@ -1006,6 +1021,8 @@
         btn.disabled = true;
 
         const quality = this.config.videoQuality || 'medium';
+        const quoteBase = this.buildQuoteFileBase();
+        const outputBase = `${quoteBase}-Animated-Reel`;
         const stream = this.canvas.captureStream(60);
         const preferredMime = format === 'mp4' && MediaRecorder.isTypeSupported('video/mp4')
           ? 'video/mp4'
@@ -1039,6 +1056,7 @@
           form.append('file', blob, uploadName);
           form.append('quality', quality);
 
+          form.append('fileName', outputBase);
           const resp = await fetch('/api/media/convert', { method: 'POST', body: form });
           if (!resp.ok) throw new Error('Server conversion failed');
 
@@ -1046,14 +1064,14 @@
           const url = URL.createObjectURL(mp4Blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `Quote-Animated-Reel-${quality}.mp4`;
+          a.download = `${outputBase}-${quality}.mp4`;
           a.click();
         } catch (err) {
           console.warn('Server conversion failed, falling back to the browser-generated container:', err);
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `Quote-Animated-Reel-${quality}.${blob.type.includes('mp4') ? 'mp4' : 'webm'}`;
+          a.download = `${outputBase}-${quality}.${blob.type.includes('mp4') ? 'mp4' : 'webm'}`;
           a.click();
         }
 

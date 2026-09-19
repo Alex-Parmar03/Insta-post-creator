@@ -1084,7 +1084,7 @@
 
         const quality = this.config.videoQuality || 'medium';
         const quoteBase = this.buildQuoteFileBase();
-        const outputBase = `${quoteBase}-Animated-Reel`;
+        const outputBase = `${quoteBase}`;
         const stream = this.canvas.captureStream(60);
         const preferredMime = format === 'mp4' && MediaRecorder.isTypeSupported('video/mp4')
           ? 'video/mp4'

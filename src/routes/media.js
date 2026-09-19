@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { fetchBackgroundImages } = require('../services/mediaService');
+const { fetchBackgroundImages, fetchCreativeImages } = require('../services/mediaService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -75,5 +75,15 @@ router.post('/convert', upload.single('file'), async (req, res) => {
       try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
     res.status(500).json({ success: false, message: 'Conversion failed' });
+  }
+});
+
+router.post('/creative-media', async (req, res) => {
+  try {
+    const result = await fetchCreativeImages(req.body || {});
+    res.json({ success: true, topic: result.topic, assets: result.assets });
+  } catch (error) {
+    console.error('Creative media route error:', error);
+    res.status(500).json({ success: false, message: 'Server error processing creative media' });
   }
 });

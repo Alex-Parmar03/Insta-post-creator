@@ -98,6 +98,7 @@
         <button onclick="UI.switchTab('anim')" id="tabBtn-anim" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">Mode & Motion</button>
         <button onclick="UI.switchTab('presets')" id="tabBtn-presets" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">Presets</button>
         <button onclick="UI.switchTab('fx')" id="tabBtn-fx" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">FX & Media</button>
+        <button onclick="UI.switchTab('creative')" id="tabBtn-creative" class="flex-1 py-2.5 text-xs font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition">Creative Post</button>
       </div>
 
       <!-- Tab Contents Area -->
@@ -266,6 +267,67 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- TAB 5: CREATIVE INSTAGRAM POST BUILDER -->
+        <div id="tab-creative" class="space-y-4 hidden">
+          <div class="p-3 bg-gradient-to-br from-rose-950/70 via-purple-950/50 to-amber-950/40 border border-rose-500/40 rounded-lg">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-rose-200">Creative Instagram Post</span>
+              <span id="creativeMatchBadge" class="text-[10px] font-mono text-amber-300">Ready</span>
+            </div>
+            <p class="text-[10px] text-gray-300">Make quote-led posts with people, couples, emotion, and a clear visual story.</p>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-300 mb-1">Mood</label>
+            <select id="creativeMood" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200">
+              <option value="romantic">Romantic / Love</option>
+              <option value="sad">Sad / Heartbreak</option>
+              <option value="hopeful">Hopeful / Healing</option>
+              <option value="motivational">Motivational / Strong</option>
+              <option value="calm">Calm / Thoughtful</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-300 mb-1">Main Visual</label>
+            <select id="creativeSubject" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-gray-200">
+              <option value="couple">Couple / Two People</option>
+              <option value="woman">Woman Portrait</option>
+              <option value="man">Man Portrait</option>
+              <option value="friends">Friends Together</option>
+              <option value="solitary">Single Person / Solitude</option>
+              <option value="symbolic">Symbolic Story Scene</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-rose-300 mb-1">Post Text</label>
+            <textarea id="creativeText" rows="4" placeholder="તારી સાથે વાત થાય એટલે દિવસ સારો બની જાય..." class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-rose-500"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Composition</label>
+              <select id="creativeComposition" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-gray-200">
+                <option value="quote">Quote Focus</option>
+                <option value="editorial">Editorial Poster</option>
+                <option value="minimal">Minimal Type</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Format</label>
+              <select id="creativeFormat" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-gray-200">
+                <option value="story">9:16 Story</option>
+                <option value="square">1:1 Square</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="createCreativePost()" class="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-white font-bold text-xs py-2.5 px-3 rounded-lg shadow-lg transition">✨ Create Creative Post</button>
+          <button onclick="findCreativeImages()" class="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-200 font-semibold text-xs py-2 px-3 rounded-lg transition">🖼️ Find More Related Images</button>
+          <div id="creativeThumbGrid" class="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto p-1 border border-gray-800/60 rounded-lg bg-gray-950/40"></div>
         </div>
 
         <!-- TAB 2: MOTION & ANIMATION ARCHITECTURE -->
@@ -1131,6 +1193,73 @@
       Engine.updateConfigFromUI();
     }
 
+    async function findCreativeImages() {
+      const badge = document.getElementById('creativeMatchBadge');
+      const mood = document.getElementById('creativeMood').value;
+      const subject = document.getElementById('creativeSubject').value;
+      badge.textContent = 'Finding...';
+
+      try {
+        const response = await fetch('/api/media/creative-media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mood, subject, count: 6 })
+        });
+        if (!response.ok) throw new Error('Creative image search failed');
+        const result = await response.json();
+        populateCreativeThumbnails(result.assets || []);
+        badge.textContent = `${mood} / ${subject}`;
+      } catch (error) {
+        badge.textContent = 'Search unavailable';
+        console.warn(error);
+      }
+    }
+
+    function populateCreativeThumbnails(assets) {
+      const grid = document.getElementById('creativeThumbGrid');
+      grid.innerHTML = '';
+      assets.forEach(url => {
+        const img = document.createElement('img');
+        img.src = url;
+        img.crossOrigin = 'anonymous';
+        img.className = 'w-full h-20 object-cover rounded cursor-pointer border-2 border-transparent hover:border-rose-500 transition hover:scale-105 transform';
+        img.onclick = () => {
+          Engine.currentBgImage = new Image();
+          Engine.currentBgImage.crossOrigin = 'anonymous';
+          Engine.currentBgImage.onload = () => Engine.updateConfigFromUI();
+          Engine.currentBgImage.src = url;
+        };
+        grid.appendChild(img);
+      });
+      if (assets[0]) {
+        Engine.currentBgImage = new Image();
+        Engine.currentBgImage.crossOrigin = 'anonymous';
+        Engine.currentBgImage.onload = () => Engine.updateConfigFromUI();
+        Engine.currentBgImage.src = assets[0];
+      }
+    }
+
+    async function createCreativePost() {
+      const textInput = document.getElementById('creativeText');
+      const text = textInput.value.trim() || textInput.placeholder;
+      const composition = document.getElementById('creativeComposition').value;
+      const format = document.getElementById('creativeFormat').value;
+      const mood = document.getElementById('creativeMood').value;
+
+      document.getElementById('inputText').value = text;
+      document.getElementById('disableAnimation').checked = true;
+      document.getElementById('textColor').value = '#ffffff';
+      document.getElementById('highlightColor').value = mood === 'sad' ? '#93c5fd' : '#fbbf24';
+      document.getElementById('fontFamily').value = composition === 'minimal' ? 'Montserrat' : 'Tiro Devanagari Hindi';
+      document.getElementById('fontSize').value = composition === 'editorial' ? 58 : 52;
+      document.getElementById('textWidth').value = composition === 'minimal' ? 760 : 850;
+      document.getElementById('overlayOpacity').value = composition === 'minimal' ? 45 : 65;
+      document.getElementById('textY').value = format === 'story' ? 510 : 430;
+      Engine.setRatio(format === 'story' ? '9:16' : '1:1');
+      Engine.updateConfigFromUI();
+      await findCreativeImages();
+    }
+
     // SMART TEXT-TO-IMAGE SEARCH FUNCTION
     function fetchImagesBasedOnText() {
       const text = document.getElementById('inputText').value.toLowerCase();
@@ -1244,7 +1373,7 @@
 
     const UI = {
       switchTab(tabKey) {
-        ['content', 'anim', 'presets', 'fx'].forEach(t => {
+        ['content', 'anim', 'presets', 'fx', 'creative'].forEach(t => {
           document.getElementById(`tab-${t}`).classList.add('hidden');
           const btn = document.getElementById(`tabBtn-${t}`);
           btn.classList.remove('text-purple-400', 'border-purple-400');
